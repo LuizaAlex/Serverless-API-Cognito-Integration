@@ -4,25 +4,11 @@
       "Statement": [
         {
           "Action": [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents",
-            "dynamodb:GetItem",
-            "dynamodb:Query",
-            "dynamodb:PutItem",
-            "dynamodb:Batch*",
-            "dynamodb:DeleteItem",
-            "dynamodb:Scan",
-            "cognito-idp:DescribeUserPool",
-            "cognito-idp:GetUser",
-            "cognito-idp:ListUsers",
-            "cognito-idp:AdminCreateUser",
-            "cognito-idp:AdminInitiateAuth",
-            "cognito-idp:GetIdentityProviderByIdentifier",
-            "cognito-idp:ListUserPools",
-            "cognito-idp:ListUserPoolClients",
-            "cognito-idp:AdminRespondToAuthChallenge",
-            "cognito-idp:AdminConfirmSignUp"
+            "logs:*",
+            "dynamodb:*",
+            "ssm:*",
+            "kms:*",
+            "cognito-idp:*"
           ],
           "Effect": "Allow",
           "Resource": "*"
