@@ -5,7 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
-import com.syndicate.deployment.model.RetentionSetting;
+
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
@@ -16,9 +16,9 @@ import static com.task10.LambdaVariables.COGNITO;
 
 @LambdaHandler(lambdaName = "api_handler",
         roleName = "api_handler-role",
-		isPublishVersion = false,
+		isPublishVersion = false
 
-	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
+	
 )
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
