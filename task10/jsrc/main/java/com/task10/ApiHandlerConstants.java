@@ -3,7 +3,7 @@ package com.task10;
 
 public class ApiHandlerConstants {
 
-    public static final String RESOURCE_PROFIX = "cmtr-4df2c6a7-";
+    public static final String RESOURCE_PROFIX = "cmtr-3663a088-";
     public static final String RESOURCE_SUFFIX = "-test";
 
     public static final String TABLES_TABLE_NAME = RESOURCE_PROFIX + "Tables" + RESOURCE_SUFFIX;
