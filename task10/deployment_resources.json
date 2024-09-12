@@ -11,7 +11,8 @@
             "ssm:PutParameter",
             "ssm:GetParameter",
             "kms:Decrypt",
-            "cognito-idp:*"
+            "cognito-idp:*",
+            "cognito-idp:AdminInitiateAuth"
           ],
           "Effect": "Allow",
           "Resource": "*"
