@@ -46,7 +46,7 @@
   "Tables": {
     "resource_type": "dynamodb_table",
     "hash_key_name": "id",
-    "hash_key_type": "S",
+    "hash_key_type": "N",
     "read_capacity": 1,
     "write_capacity": 1,
     "global_indexes": [],
@@ -97,7 +97,7 @@
         }
       },
       "/signin": {
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
@@ -112,7 +112,7 @@
         }
       },
       "/tables": {
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
@@ -139,7 +139,7 @@
         }
       },
       "/tables/{tableId}": {
-        "enable_cors": true,
+        "enable_cors": false,
         "GET": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
@@ -154,7 +154,7 @@
         }
       },
       "/reservations": {
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
