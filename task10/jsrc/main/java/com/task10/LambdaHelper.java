@@ -15,39 +15,43 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 import java.io.IOException;
 import java.util.*;
 
-import static com.task10.ApiHandlerConstants.*;
-import static com.task10.ApiHandlerConstants.TABLE_MIN_ORDER;
+import static com.task10.LambdaVariables.*;
 
-public class MyApiHandlerUtils {
+public class LambdaHelper {
 
-    public static void createUserPoolApiClientIfNotExists(String cognitoId, String clientName, CognitoIdentityProviderClient cognitoClient, Context context) {
+    public static void createUserPoolApiClientIfNotExist(String cognitoId, String clientName,
+                                                         CognitoIdentityProviderClient cognitoClient,
+                                                         Context context) {
         boolean noOneApiClient = cognitoClient.listUserPoolClients(ListUserPoolClientsRequest.builder()
                 .userPoolId(cognitoId)
                 .build()).userPoolClients().isEmpty();
         if (noOneApiClient) {
-            CreateUserPoolClientResponse createUserPoolClientResponse = cognitoClient.createUserPoolClient(CreateUserPoolClientRequest.builder()
-                    .userPoolId(cognitoId)
-                    .clientName(clientName)
-                    .explicitAuthFlows(ExplicitAuthFlowsType.ADMIN_NO_SRP_AUTH)
-                    .generateSecret(false)
-                    .build());
-            context.getLogger().log("Create user pool client. Response: " + createUserPoolClientResponse);
+            CreateUserPoolClientResponse createUserPoolClientResponse =
+                    cognitoClient.createUserPoolClient(CreateUserPoolClientRequest.builder()
+                            .userPoolId(cognitoId)
+                            .clientName(clientName)
+                            .explicitAuthFlows(ExplicitAuthFlowsType.ADMIN_NO_SRP_AUTH)
+                            .generateSecret(false)
+                            .build());
+            context.getLogger().log("User pool client was created: " + createUserPoolClientResponse);
         }
     }
 
-    public static UserPoolClientDescription getUserPoolApiDesc(String cognitoId, CognitoIdentityProviderClient cognitoClient, Context context) {
+    public static UserPoolClientDescription getUserPoolApiDesc(String cognitoId,
+                                                               CognitoIdentityProviderClient cognitoClient,
+                                                               Context context) {
         ListUserPoolClientsResponse response = cognitoClient.listUserPoolClients(ListUserPoolClientsRequest.builder()
                 .userPoolId(cognitoId)
                 .build());
-        Iterator<UserPoolClientDescription> it = response.userPoolClients().iterator();
+        Iterator<UserPoolClientDescription> iterator = response.userPoolClients().iterator();
         UserPoolClientDescription result = null;
-        if (it.hasNext()) {
-            result = it.next();
+        if (iterator.hasNext()) {
+            result = iterator.next();
+            context.getLogger().log("User pool client: " + result);
         } else {
-            createUserPoolApiClientIfNotExists(cognitoId, COGNITO_CLIENT_API_NAME, cognitoClient, context);
+            context.getLogger().log("Creating user pool client");
+            createUserPoolApiClientIfNotExist(cognitoId, COGNITO_CLIENT_API, cognitoClient, context);
         }
-
-        context.getLogger().log("User pool app client: " + result);
         return result;
     }
 
@@ -57,7 +61,7 @@ public class MyApiHandlerUtils {
         for (UserPoolDescriptionType userPool : userPools) {
             if (name.equals(userPool.name())) {
                 String cognitoId = userPool.id();
-                context.getLogger().log("Founded cognito id: " + cognitoId);
+                context.getLogger().log("Cognito id was found: " + cognitoId);
                 return cognitoId;
             }
         }
@@ -80,7 +84,7 @@ public class MyApiHandlerUtils {
         map.put(TABLE_NUMBER, Integer.parseInt(item.get(TABLE_NUMBER).getN()));
         map.put(TABLE_PLACES, Integer.parseInt(item.get(TABLE_PLACES).getN()));
         map.put(TABLE_IS_VIP, item.get(TABLE_IS_VIP).getBOOL());
-        if(item.containsKey(TABLE_MIN_ORDER)) {
+        if (item.containsKey(TABLE_MIN_ORDER)) {
             map.put(TABLE_MIN_ORDER, Integer.parseInt(item.get(TABLE_MIN_ORDER).getN()));
         }
     }
@@ -105,10 +109,10 @@ public class MyApiHandlerUtils {
         map.put(RESERVATION_SLOT_TIME_END, item.get(RESERVATION_SLOT_TIME_END).getS());
     }
 
-    @SuppressWarnings("unchecked")
+
     public static Map<String, Object> eventToBody(APIGatewayProxyRequestEvent event, Context context) {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> body = null;
+        Map<String, Object> body;
         try {
             body = mapper.readValue(event.getBody(), Map.class);
         } catch (IOException e) {
@@ -119,9 +123,9 @@ public class MyApiHandlerUtils {
         return body;
     }
 
-    public static APIGatewayProxyResponseEvent formSuccessResponse(Object responseBody, Context context) {
+    public static APIGatewayProxyResponseEvent createSuccessResponse(Object responseBody, Context context) {
         ObjectMapper mapper = new ObjectMapper();
-        APIGatewayProxyResponseEvent response = null;
+        APIGatewayProxyResponseEvent response;
         try {
             if (Objects.nonNull(responseBody)) {
                 response = new APIGatewayProxyResponseEvent().withBody(mapper.writeValueAsString(responseBody))
@@ -145,20 +149,21 @@ public class MyApiHandlerUtils {
     }
 
     public static String getAccessToken(Map<String, String> headers, Context context) {
-        String accessToken = headers.get(AUTHORIZATION_ATTR).split(" ")[1];
+        String accessToken = headers.get(AUTHORIZATION).split(" ")[1];
         context.getLogger().log("Access token: " + accessToken);
         return accessToken;
     }
 
-    public static boolean checkIfTableExists(String tableNumber, AmazonDynamoDB dynamoDb, Context context) {
-        ScanRequest scanRequest = new ScanRequest().withTableName(TABLES_TABLE_NAME);
+    public static boolean isTableExist(String tableNumber, AmazonDynamoDB dynamoDb) {
+        ScanRequest scanRequest = new ScanRequest().withTableName(TABLE_TABLES);
         List<Map<String, Object>> tables = getAllTables(dynamoDb, scanRequest);
         return tables.stream().anyMatch(table -> tableNumber.equals(String.valueOf(table.get(TABLE_NUMBER))));
     }
 
-    public static boolean checkIfReservationWithTableIsNotExists(String tableNumber, AmazonDynamoDB dynamoDb, Context context) {
-        ScanRequest scanRequest = new ScanRequest().withTableName(RESERVATIONS_TABLE_NAME);
+    public static boolean isReservationWithTableDoNotExist(String tableNumber, AmazonDynamoDB dynamoDb) {
+        ScanRequest scanRequest = new ScanRequest().withTableName(TABLE_RESERVATIONS);
         List<Map<String, Object>> tables = getAllReservations(dynamoDb, scanRequest);
-        return tables.stream().noneMatch(reservation -> tableNumber.equals(String.valueOf(reservation.get(RESERVATION_TABLE_NUMBER))));
+        return tables.stream().noneMatch(reservation ->
+                tableNumber.equals(String.valueOf(reservation.get(RESERVATION_TABLE_NUMBER))));
     }
 }
